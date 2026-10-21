@@ -1,59 +1,53 @@
 package com.example.freegamesapi.data.remote
 
+import com.example.freegamesapi.data.remote.api.CatFactApiService
+import com.example.freegamesapi.data.remote.api.DogCeoApiService
+import com.example.freegamesapi.data.remote.api.OpenMeteoApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-/**
- * Cliente Retrofit unificado (patrón Singleton con `object`)
- * que centraliza las URLs base y la creación de los servicios API de la aplicación.
- */
+/** Única instancia de Retrofit de la app (patrón singleton con `object`). */
 object RetrofitClient {
 
+    // Debe terminar en "/" para que Retrofit pueda concatenar las rutas relativas.
+    private const val BASE_URL_OPEN_METEO = "https://api.open-meteo.com/v1/"
+    private const val BASE_URL_DOG_CEO = "https://dog.ceo/api/"
+    private const val BASE_URL_CAT_FACT = "https://catfact.ninja/"
+
     private val clienteHttp: OkHttpClient = OkHttpClient.Builder()
+        // Muestra cada petición en Logcat (filtrar por "OkHttp"): útil para depurar y para clase.
         .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BASIC })
         .build()
 
-    private inline fun <reified T> createService(baseUrl: String): T {
-        return Retrofit.Builder()
-            .baseUrl(baseUrl)
+    // API 1: Open-Meteo
+    val openMeteoApi: OpenMeteoApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_OPEN_METEO)
             .client(clienteHttp)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create()) // JSON <-> objetos Kotlin
             .build()
-            .create(T::class.java)
+            .create(OpenMeteoApiService::class.java)
     }
 
-    // 1. FreeGames API (https://www.freetogame.com/api/)
-    val freeGamesApi: FreeGamesApiService by lazy {
-        createService("https://www.freetogame.com/api/")
+    // API 2: Dog CEO
+    val dogCeoApi: DogCeoApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_DOG_CEO)
+            .client(clienteHttp)
+            .addConverterFactory(GsonConverterFactory.create()) // JSON <-> objetos Kotlin
+            .build()
+            .create(DogCeoApiService::class.java)
     }
 
-    // Alias para compatibilidad con FreeGamesRepository existente
-    val api: FreeGamesApiService get() = freeGamesApi
-
-    // 2. CheapShark API (https://www.cheapshark.com/api/1.0/)
-    val cheapSharkApi: CheapSharkApiService by lazy {
-        createService("https://www.cheapshark.com/api/1.0/")
-    }
-
-    // 3. OpenTrivia API (https://opentdb.com/)
-    val openTriviaApi: OpenTriviaApiService by lazy {
-        createService("https://opentdb.com/")
-    }
-
-    // 4. PokeAPI (https://pokeapi.co/api/v2/)
-    val pokeApi: PokeApiService by lazy {
-        createService("https://pokeapi.co/api/v2/")
-    }
-
-    // 5. RAWG API (https://rawg.io/api/)
-    val rawgApi: RawgApiService by lazy {
-        createService("https://rawg.io/api/")
-    }
-
-    // 6. Rick and Morty API (https://rickandmortyapi.com/api/)
-    val rickAndMortyApi: RickAndMortyApiService by lazy {
-        createService("https://rickandmortyapi.com/api/")
+    // API 3: Cat Facts
+    val catFactApi: CatFactApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_CAT_FACT)
+            .client(clienteHttp)
+            .addConverterFactory(GsonConverterFactory.create()) // JSON <-> objetos Kotlin
+            .build()
+            .create(CatFactApiService::class.java)
     }
 }
